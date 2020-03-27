@@ -9,11 +9,16 @@ BACKGROUND_COLOR = arcade.csscolor.CORNFLOWER_BLUE
 # Block props
 BLOCK_SCALING = 0.5
 
+# Ground props
+WALL_SCALING = 0.5
+WALL_WIDTH = 64
+
 # Player props
 PLAYER_SCALING = 1
 PLAYER_CENTER_X = 64
 PLAYER_CENTER_Y = 128
 PLAYER_SPEED = 5
+GRAVITY = 1
 
 class Game(arcade.Window):
   def __init__(self):
@@ -22,6 +27,7 @@ class Game(arcade.Window):
 
     # Game variables
     self.blocks = None
+    self.walls = None
     self.players = None
     self.player_sprite = None
     self.physics = None
@@ -29,20 +35,35 @@ class Game(arcade.Window):
   def setup(self):
     """ Setup game variables """
     self.blocks = arcade.SpriteList()
+    self.walls = arcade.SpriteList()
     self.players = arcade.SpriteList()
 
-    image = ":resources:images/animated_characters/female_adventurer/femaleAdventurer_idle.png"
-    self.player_sprite = arcade.Sprite(image, PLAYER_SCALING)
+    # setup player
+    imagePlayer = ":resources:images/animated_characters/female_adventurer/femaleAdventurer_idle.png"
+    self.player_sprite = arcade.Sprite(imagePlayer, PLAYER_SCALING)
     self.player_sprite.center_x = PLAYER_CENTER_X
     self.player_sprite.center_y = PLAYER_CENTER_Y
     self.players.append(self.player_sprite)
 
-    self.physics = arcade.PhysicsEngineSimple(self.player_sprite, self.blocks)
+    # setup ground
+    for x in range(0, SCREEN_WIDTH, WALL_WIDTH):
+      imageWall = ":resources:images/tiles/grassMid.png" 
+      wall = arcade.Sprite(imageWall, WALL_SCALING)
+      wall.center_x = x
+      wall.center_y = 32
+      self.walls.append(wall)
+
+    self.physics = arcade.PhysicsEnginePlatformer(
+      self.player_sprite,
+      self.walls,
+      GRAVITY
+    )
 
   def on_draw(self):
     """ Render game screen """
     arcade.start_render()
     self.blocks.draw()
+    self.walls.draw()
     self.players.draw()
 
   def on_key_press(self, key, modifiers):
