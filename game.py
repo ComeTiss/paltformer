@@ -1,5 +1,5 @@
 import arcade
-
+import random
 import game_over
 
 # Game constants
@@ -11,6 +11,7 @@ BACKGROUND_COLOR = arcade.csscolor.CORNFLOWER_BLUE
 # Block props
 BLOCK_SCALING = 0.5
 BLOCK_GRAVITY = 3
+BLOCK_GENERATION_COUNT = 70 # The higher, the harder it will be. 
 
 # Ground props
 WALL_SCALING = 0.5
@@ -32,6 +33,7 @@ class Game(arcade.View):
     self.blocks = arcade.SpriteList()
     self.walls = arcade.SpriteList()
     self.players = arcade.SpriteList()
+    self.counter = 0
 
     # setup player
     imagePlayer = ":resources:images/animated_characters/female_adventurer/femaleAdventurer_idle.png"
@@ -54,8 +56,6 @@ class Game(arcade.View):
       GRAVITY
     )
 
-    self.generateBlock()
-
   def on_draw(self):
     """ Render game screen """
     arcade.start_render()
@@ -76,8 +76,9 @@ class Game(arcade.View):
       self.player_sprite.change_x = 0
 
   def on_update(self, delta_time):
+    self.generateBlock()
     self.physicPlayer.update()
-    self.applyGravity()
+    self.handleBlocks()
 
     # Keep player inside screen
     if self.canMoveLeft() == False or self.canMoveRight() == False:
@@ -89,6 +90,7 @@ class Game(arcade.View):
       gameOverView = game_over.GameOver()
       self.window.show_view(gameOverView)
 
+  ## Utils methods ##
   def canMoveLeft(self):
     return self.player_sprite.center_x > WALL_WIDTH / 2
 
@@ -96,15 +98,23 @@ class Game(arcade.View):
     return self.player_sprite.center_x < SCREEN_WIDTH - WALL_WIDTH / 2
 
   def generateBlock(self):
-    newBlock = arcade.Sprite(":resources:images/tiles/grassMid.png", BLOCK_SCALING) 
-    newBlock.center_x = SCREEN_WIDTH / 2
-    newBlock.center_y = SCREEN_HEIGHT
-    self.blocks.append(newBlock)
+    if self.counter == BLOCK_GENERATION_COUNT:
+      newBlock = arcade.Sprite(":resources:images/tiles/grassMid.png", BLOCK_SCALING) 
+      newBlock.center_x = random.randrange(0, SCREEN_WIDTH, 100)
+      newBlock.center_y = SCREEN_HEIGHT
+      self.blocks.append(newBlock)
+      self.counter = 0
+    else:
+      self.counter += 1
 
-  def applyGravity(self):
+  def handleBlocks(self):
+    # apply gravity & destroy old blocks
     for block in self.blocks:
-      block.change_y = -BLOCK_GRAVITY
-      block.update()  
+      if block.center_y < 0:
+        self.blocks.remove(block)
+      else: 
+        block.change_y = -BLOCK_GRAVITY
+        block.update()     
 
 def main():
   window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
