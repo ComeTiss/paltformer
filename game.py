@@ -1,5 +1,7 @@
 import arcade
 
+import game_over
+
 # Game constants
 SCREEN_TITLE = "Python Game"
 SCREEN_WIDTH = 1000
@@ -8,6 +10,7 @@ BACKGROUND_COLOR = arcade.csscolor.CORNFLOWER_BLUE
 
 # Block props
 BLOCK_SCALING = 0.5
+BLOCK_GRAVITY = 3
 
 # Ground props
 WALL_SCALING = 0.5
@@ -20,19 +23,11 @@ PLAYER_CENTER_Y = 128
 PLAYER_SPEED = 5
 GRAVITY = 1
 
-class Game(arcade.Window):
+class Game(arcade.View):
   def __init__(self):
-    super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+    super().__init__()
     arcade.set_background_color(BACKGROUND_COLOR)
 
-    # Game variables
-    self.blocks = None
-    self.walls = None
-    self.players = None
-    self.player_sprite = None
-    self.physics = None
-
-  def setup(self):
     """ Setup game variables """
     self.blocks = arcade.SpriteList()
     self.walls = arcade.SpriteList()
@@ -52,12 +47,14 @@ class Game(arcade.Window):
       wall.center_x = x
       wall.center_y = 32
       self.walls.append(wall)
-
-    self.physics = arcade.PhysicsEnginePlatformer(
+    
+    self.physicPlayer = arcade.PhysicsEnginePlatformer(
       self.player_sprite,
       self.walls,
       GRAVITY
     )
+
+    self.generateBlock()
 
   def on_draw(self):
     """ Render game screen """
@@ -79,7 +76,8 @@ class Game(arcade.Window):
       self.player_sprite.change_x = 0
 
   def on_update(self, delta_time):
-    self.physics.update()
+    self.physicPlayer.update()
+    self.applyGravity()
 
     # Keep player inside screen
     if self.canMoveLeft() == False or self.canMoveRight() == False:
@@ -88,8 +86,8 @@ class Game(arcade.Window):
     # Check if player touches a block
     collisions = arcade.check_for_collision_with_list(self.player_sprite, self.blocks)
     if len(collisions) > 0:
-      print("collision")
-      pass
+      gameOverView = game_over.GameOver()
+      self.window.show_view(gameOverView)
 
   def canMoveLeft(self):
     return self.player_sprite.center_x > WALL_WIDTH / 2
@@ -97,10 +95,21 @@ class Game(arcade.Window):
   def canMoveRight(self):
     return self.player_sprite.center_x < SCREEN_WIDTH - WALL_WIDTH / 2
 
+  def generateBlock(self):
+    newBlock = arcade.Sprite(":resources:images/tiles/grassMid.png", BLOCK_SCALING) 
+    newBlock.center_x = SCREEN_WIDTH / 2
+    newBlock.center_y = SCREEN_HEIGHT
+    self.blocks.append(newBlock)
+
+  def applyGravity(self):
+    for block in self.blocks:
+      block.change_y = -BLOCK_GRAVITY
+      block.update()  
 
 def main():
-  window = Game()
-  window.setup()
+  window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+  gameView = Game()
+  window.show_view(gameView)
   arcade.run()
 
 if __name__ == "__main__":
