@@ -46,7 +46,7 @@ class Game(arcade.Window):
     self.players.append(self.player_sprite)
 
     # setup ground
-    for x in range(0, SCREEN_WIDTH, WALL_WIDTH):
+    for x in range(0, SCREEN_WIDTH+WALL_WIDTH, WALL_WIDTH):
       imageWall = ":resources:images/tiles/grassMid.png" 
       wall = arcade.Sprite(imageWall, WALL_SCALING)
       wall.center_x = x
@@ -67,9 +67,9 @@ class Game(arcade.Window):
     self.players.draw()
 
   def on_key_press(self, key, modifiers):
-    if key == arcade.key.LEFT:
+    if key == arcade.key.LEFT and self.canMoveLeft():
       self.player_sprite.change_x = -PLAYER_SPEED
-    elif key == arcade.key.RIGHT:
+    elif key == arcade.key.RIGHT and self.canMoveRight():
       self.player_sprite.change_x = PLAYER_SPEED 
 
   def on_key_release(self, key, modifiers):
@@ -80,6 +80,22 @@ class Game(arcade.Window):
 
   def on_update(self, delta_time):
     self.physics.update()
+
+    # Keep player inside screen
+    if self.canMoveLeft() == False or self.canMoveRight() == False:
+      self.player_sprite.change_x = 0
+
+    # Check if player touches a block
+    collisions = arcade.check_for_collision_with_list(self.player_sprite, self.blocks)
+    if len(collisions) > 0:
+      print("collision")
+      pass
+
+  def canMoveLeft(self):
+    return self.player_sprite.center_x > WALL_WIDTH / 2
+
+  def canMoveRight(self):
+    return self.player_sprite.center_x < SCREEN_WIDTH - WALL_WIDTH / 2
 
 
 def main():
