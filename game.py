@@ -11,7 +11,7 @@ BACKGROUND_COLOR = arcade.csscolor.CORNFLOWER_BLUE
 # Block props
 BLOCK_SCALING = 0.5
 BLOCK_GRAVITY = 3
-BLOCK_GENERATION_COUNT = 70 # The higher, the harder it will be. 
+BLOCK_GENERATION_COUNT = 40 # The higher, the harder it will be. 
 
 # Ground props
 WALL_SCALING = 0.5
